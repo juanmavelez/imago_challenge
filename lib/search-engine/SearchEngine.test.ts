@@ -39,9 +39,10 @@ describe('SearchEngine', () => {
             expect(results).toEqual(['1']);
         });
 
-        it('finds multiple matches and ranks them based on score', () => {
+        it('finds matches with multiple words (AND logic)', () => {
             const results = engine.search('John banana');
-            expect(results).toEqual(['1', '2', '3']);
+            // With AND logic, only item 1 has both "John" and "banana"
+            expect(results).toEqual(['1']);
         });
 
         it('ranks exactly matching tokens higher due to accumulated weights', () => {

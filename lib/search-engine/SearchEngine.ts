@@ -17,10 +17,13 @@ const WEIGHTS = {
 
 export class SearchEngine {
     private invertedIndexMap: Map<string, Map<string, number>> = new Map();
-    private itemsMap: Map<string, MediaItem> = new Map()
+    private itemsMap: Map<string, MediaItem> = new Map();
+    private documentCount: number = 0;
 
     public addItem(item: MediaItem) {
         this.itemsMap.set(item.id, item);
+        this.documentCount++;
+
         const tokenScores = new Map<string, number>();
 
         // Get unique tokens per field
@@ -61,24 +64,35 @@ export class SearchEngine {
         const scores = new Map<string, number>();
 
         /* 
-            NOTE: This is our MVP scoring model constraint.
-            It relies purely on adding scoring, the token exists = add points.
-            This means that it will have limitations such as:
-             "Michael jackson", "Michael jackson dog", "Michael jackson house"
-            will get the same score. This wont work for a production working search engine
+            Updated to use AND logic instead of the MVP OR logic.
+            An item must contain all unique tokens in the search query to be returned.
         */
-        for (const token of queryTokens) {
+        const uniqueQueryTokens = Array.from(new Set(queryTokens));
+        const requiredTokenCount = uniqueQueryTokens.length;
+
+        const tokenCounts = new Map<string, number>();
+
+        for (const token of uniqueQueryTokens) {
             const matchingItems = this.invertedIndexMap.get(token);
 
             if (matchingItems) {
-                for (const [id, score] of matchingItems.entries()) {
-                    scores.set(id, (scores.get(id) || 0) + score);
+                // Calculate IDF for this specific token
+                const documentFrequency = matchingItems.size;
+                // Add 1 to avoid division by zero or negative logs
+                const idf = Math.log(this.documentCount / (documentFrequency || 1)) + 1;
+
+                for (const [id, tfScore] of matchingItems.entries()) {
+                    // Combine TF and IDF
+                    const tfIdfScore = tfScore * idf;
+                    scores.set(id, (scores.get(id) || 0) + tfIdfScore);
+                    tokenCounts.set(id, (tokenCounts.get(id) || 0) + 1);
                 }
             }
         }
 
-        // Sort IDs by highest score descending
+        // Filter and sort IDs by highest score descending
         const rankedIds = Array.from(scores.entries())
+            .filter(([id]) => tokenCounts.get(id) === requiredTokenCount)
             .sort((a, b) => b[1] - a[1]) // Compare scores descending
             .map(([id]) => id);          // Return only IDs
 
