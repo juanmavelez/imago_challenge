@@ -4,12 +4,12 @@ export function applyFilters(results: ProcessedMediaItem[], credit?: string | nu
     let filtered = results;
 
     if (credit) {
-        const credits = credit.split(',').map(c => c.trim().toLowerCase());
+        const credits = credit.split(",").map(c => c.trim().toLowerCase());
         filtered = filtered.filter(item => credits.includes(item.fotografen.toLowerCase()));
     }
 
     if (restrictions) {
-        const reqRestrictions = restrictions.split(',').map(r => r.trim());
+        const reqRestrictions = restrictions.split(",").map(r => r.trim());
         filtered = filtered.filter(item =>
             reqRestrictions.every(req => item.restrictions.includes(req))
         );

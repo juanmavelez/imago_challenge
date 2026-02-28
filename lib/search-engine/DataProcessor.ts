@@ -54,7 +54,7 @@ export class DataProcessor {
         }).trim();
 
         return {
-            cleanText: cleanText.replace(/\s+/g, ' '),
+            cleanText: cleanText.replace(/\s+/g, " "),
             restrictions
         };
     }

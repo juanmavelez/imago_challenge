@@ -1,5 +1,5 @@
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from "fs";
+import * as path from "path";
 
 const photographers = ["John Doe", "Jane Smith", "Ansel Adams", "Imogen Cunningham", "Henri Cartier-Bresson"];
 const subjects = [
@@ -25,8 +25,8 @@ const generateDate = () => {
     const start = new Date(2000, 0, 1).getTime();
     const end = new Date().getTime();
     const date = new Date(start + Math.random() * (end - start));
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
     const year = date.getFullYear();
     return `${day}.${month}.${year}`;
 };
@@ -35,7 +35,7 @@ const items = [];
 for (let i = 1; i <= 10000; i++) {
     items.push({
         suchtext: subjects[Math.floor(Math.random() * subjects.length)],
-        bildnummer: `IMG_${i.toString().padStart(6, '0')}`,
+        bildnummer: `IMG_${i.toString().padStart(6, "0")}`,
         fotografen: photographers[Math.floor(Math.random() * photographers.length)],
         datum: generateDate(),
         hoehe: String(Math.floor(Math.random() * 2000) + 500),
@@ -43,10 +43,10 @@ for (let i = 1; i <= 10000; i++) {
     });
 }
 
-const dirPath = path.join(__dirname, '../data');
+const dirPath = path.join(__dirname, "../data");
 if (!fs.existsSync(dirPath)) {
     fs.mkdirSync(dirPath);
 }
 
-fs.writeFileSync(path.join(dirPath, 'data.json'), JSON.stringify(items, null, 2));
-console.log('Successfully generated 10,000 items in data/data.json');
+fs.writeFileSync(path.join(dirPath, "data.json"), JSON.stringify(items, null, 2));
+console.log("Successfully generated 10,000 items in data/data.json");

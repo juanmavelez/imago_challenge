@@ -13,10 +13,10 @@ const Home = async (props: PageProps) => {
   // Safely extract and validate URL parameters.
   // Next.js searchParams can be undefined, string, or string[].
   // We ensure we only pass the expected primitive types (string/number) to the Service.
-  const query = typeof searchParams.query === 'string' ? searchParams.query : '';
-  const page = typeof searchParams.page === 'string' ? parseInt(searchParams.page, 10) : 1;
-  const dateSort = typeof searchParams.dateSort === 'string' ? searchParams.dateSort : 'latest';
-  const credit = typeof searchParams.credit === 'string' ? searchParams.credit : null;
+  const query = typeof searchParams.query === "string" ? searchParams.query : "";
+  const page = typeof searchParams.page === "string" ? parseInt(searchParams.page, 10) : 1;
+  const dateSort = typeof searchParams.dateSort === "string" ? searchParams.dateSort : "latest";
+  const credit = typeof searchParams.credit === "string" ? searchParams.credit : null;
 
 
   const result = SearchService.executeSearch({

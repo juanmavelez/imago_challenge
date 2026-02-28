@@ -1,7 +1,7 @@
-import { SearchEngine } from './SearchEngine';
-import { buildSearchEngine } from './DataPipeline';
+import { SearchEngine } from "./SearchEngine";
+import { buildSearchEngine } from "./DataPipeline";
 import rawData from "@/data/data.json";
-import { RawMediaItem, ProcessedMediaItem } from './DataProcessor';
+import { RawMediaItem, ProcessedMediaItem } from "./DataProcessor";
 
 // Global variable to persist the engine across hot-reloads in development
 let engineInstance: SearchEngine | null = null;
@@ -13,7 +13,7 @@ export function getStorage() {
         engineInstance = buildSearchEngine(rawData as RawMediaItem[]);
         itemsCache = new Map();
 
-        const { DataProcessor } = require('./DataProcessor');
+        const { DataProcessor } = require("./DataProcessor");
         const processed = DataProcessor.processItems(rawData as RawMediaItem[]);
         for (const item of processed) {
             itemsCache.set(item.id, item);

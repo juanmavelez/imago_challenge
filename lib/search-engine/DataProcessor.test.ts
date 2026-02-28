@@ -1,10 +1,10 @@
-import { describe, it, expect } from 'vitest';
-import { DataProcessor, RawMediaItem } from './DataProcessor';
-import { RAW_MEDIA_ITEM_MOCK_1 } from './__mocks__/media-item-mock';
+import { describe, it, expect } from "vitest";
+import { DataProcessor, RawMediaItem } from "./DataProcessor";
+import { RAW_MEDIA_ITEM_MOCK_1 } from "./__mocks__/media-item-mock";
 
-describe('DataProcessor', () => {
-    describe('processItem', () => {
-        it('normalizes valid raw item correctly', () => {
+describe("DataProcessor", () => {
+    describe("processItem", () => {
+        it("normalizes valid raw item correctly", () => {
             const processed = DataProcessor.processItem(RAW_MEDIA_ITEM_MOCK_1);
 
             expect(processed).toEqual({
@@ -21,7 +21,7 @@ describe('DataProcessor', () => {
             });
         });
 
-        it('handles missing or malformed measurements', () => {
+        it("handles missing or malformed measurements", () => {
             const rawItem: RawMediaItem = {
                 suchtext: "Test",
                 bildnummer: "IMG_2",
@@ -36,7 +36,7 @@ describe('DataProcessor', () => {
             expect(processed.height).toBe(0);
         });
 
-        it('handles date parsing fallback when not DD.MM.YYYY', () => {
+        it("handles date parsing fallback when not DD.MM.YYYY", () => {
             const rawItem: RawMediaItem = {
                 suchtext: "Test",
                 bildnummer: "IMG_3",
@@ -51,7 +51,7 @@ describe('DataProcessor', () => {
             expect(processed.timestamp).toBe(new Date("2023-12-01T10:00:00Z").getTime());
         });
 
-        it('handles empty date string', () => {
+        it("handles empty date string", () => {
             const rawItem: RawMediaItem = {
                 suchtext: "Test",
                 bildnummer: "IMG_4",
@@ -66,7 +66,7 @@ describe('DataProcessor', () => {
             expect(processed.timestamp).toBe(0);
         });
 
-        it('handles suchtext without restrictions', () => {
+        it("handles suchtext without restrictions", () => {
             const rawItem: RawMediaItem = {
                 suchtext: "Just text no brackets",
                 bildnummer: "IMG_5",
@@ -82,8 +82,8 @@ describe('DataProcessor', () => {
         });
     });
 
-    describe('processItems', () => {
-        it('processes multiple items', () => {
+    describe("processItems", () => {
+        it("processes multiple items", () => {
             const rawItems: RawMediaItem[] = [
                 { suchtext: "Item 1", bildnummer: "1", fotografen: "A", datum: "01.01.2020", hoehe: "10", breite: "10" },
                 { suchtext: "Item 2", bildnummer: "2", fotografen: "B", datum: "02.01.2020", hoehe: "20", breite: "20" }
