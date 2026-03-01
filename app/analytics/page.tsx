@@ -8,6 +8,7 @@ export default function AnalyticsDashboard() {
     const [stats, setStats] = useState<AnalyticsStats | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [flushing, setFlushing] = useState(false);
 
     const fetchStats = async () => {
         try {
@@ -26,6 +27,30 @@ export default function AnalyticsDashboard() {
         }
     };
 
+    const handleFlush = async () => {
+        if (!confirm("Are you sure you want to clear all analytics data? This action cannot be undone.")) {
+            return;
+        }
+
+        try {
+            setFlushing(true);
+            const response = await fetch("/api/analytics/flush", {
+                method: "POST",
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to flush analytics data");
+            }
+
+            // Refresh stats after flushing
+            await fetchStats();
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "An error occurred while flushing data");
+        } finally {
+            setFlushing(false);
+        }
+    };
+
     useEffect(() => {
         fetchStats();
     }, []);
@@ -40,10 +65,18 @@ export default function AnalyticsDashboard() {
                     </div>
                     <div className="flex gap-4">
                         <button
-                            onClick={fetchStats}
-                            className="rounded-md bg-neutral-800 px-4 py-2 text-sm font-medium hover:bg-neutral-700 transition-colors focus:outline-none focus:ring-2 focus:ring-neutral-400 focus:ring-offset-2 focus:ring-offset-neutral-950"
+                            onClick={handleFlush}
+                            disabled={flushing || loading}
+                            className="rounded-md bg-red-900/20 border border-red-900/50 text-red-500 px-4 py-2 text-sm font-medium hover:bg-red-900/30 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-neutral-950 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            Refresh Data
+                            {flushing ? "Flushing..." : "Flush Data"}
+                        </button>
+                        <button
+                            onClick={fetchStats}
+                            disabled={loading}
+                            className="rounded-md bg-neutral-800 px-4 py-2 text-sm font-medium hover:bg-neutral-700 transition-colors focus:outline-none focus:ring-2 focus:ring-neutral-400 focus:ring-offset-2 focus:ring-offset-neutral-950 disabled:opacity-50"
+                        >
+                            {loading && stats ? "Refreshing..." : "Refresh Data"}
                         </button>
                         <Link
                             href="/"
@@ -56,7 +89,7 @@ export default function AnalyticsDashboard() {
 
                 {error && (
                     <div className="rounded-lg bg-red-900/50 p-4 border border-red-800 text-red-200 mb-8">
-                        <p>Error loading analytics: {error}</p>
+                        <p>Error: {error}</p>
                     </div>
                 )}
 

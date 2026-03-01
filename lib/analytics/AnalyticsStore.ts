@@ -69,6 +69,10 @@ export class AnalyticsStore {
         this.saveData(data);
     }
 
+    public static flushData(): void {
+        this.saveData(DEFAULT_DATA);
+    }
+
     public static getStats(): AnalyticsStats {
         const data = this.loadData();
 
