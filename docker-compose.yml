@@ -1,11 +1,16 @@
 services:
   app:
     build: .
-    ports:
-      - "3000:3000"
+    container_name: imago-challenge
     volumes:
       - analytics-data:/app/data
     restart: unless-stopped
+    networks:
+      - velez-network
 
 volumes:
   analytics-data:
+
+networks:
+  velez-network:
+    external: true
