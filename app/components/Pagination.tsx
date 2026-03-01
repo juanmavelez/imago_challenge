@@ -26,7 +26,7 @@ export const Pagination: React.FC<PaginationProps> = ({ totalPages }) => {
         <div className="flex justify-center gap-4 mt-8">
             <Link
                 href={createPageURL(currentPage - 1)}
-                className={`px-5 py-2.5 rounded-xl border border-gray-300 dark:border-zinc-700 font-medium transition-colors ${currentPage <= 1
+                className={`px-5 py-2.5 rounded-lg border border-gray-300 dark:border-zinc-700 font-medium transition-colors ${currentPage <= 1
                     ? "opacity-50 pointer-events-none"
                     : "hover:bg-gray-50 dark:hover:bg-zinc-800"
                     }`}
@@ -41,7 +41,7 @@ export const Pagination: React.FC<PaginationProps> = ({ totalPages }) => {
 
             <Link
                 href={createPageURL(currentPage + 1)}
-                className={`px-5 py-2.5 rounded-xl border border-gray-300 dark:border-zinc-700 font-medium transition-colors ${currentPage >= totalPages
+                className={`px-5 py-2.5 rounded-lg border border-gray-300 dark:border-zinc-700 font-medium transition-colors ${currentPage >= totalPages
                     ? "opacity-50 pointer-events-none"
                     : "hover:bg-gray-50 dark:hover:bg-zinc-800"
                     }`}

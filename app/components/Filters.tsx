@@ -14,7 +14,10 @@ export const Filters: React.FC = () => {
     } = useFilters();
 
     return (
-        <div className="flex flex-wrap gap-4 items-end bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 p-4 rounded-xl shadow-sm transition-colors">
+        <form
+            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:flex xl:flex-row gap-4 items-end bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 p-4 rounded-lg shadow-sm transition-colors"
+            onSubmit={(e) => e.preventDefault()}
+        >
             <FilterSelect
                 label="Sort by Date"
                 value={dateSort}
@@ -59,7 +62,7 @@ export const Filters: React.FC = () => {
                 label="Restrictions"
                 value={restrictions}
                 onChange={(val) => handleFilterChange(QUERY_PARAMS.RESTRICTIONS, val)}
-                className="flex-1"
+                className="xl:flex-1"
                 options={[
                     { value: "", label: "No Restrictions Filtered" },
                     { value: "auto", label: "Auto" },
@@ -72,8 +75,9 @@ export const Filters: React.FC = () => {
                 ]}
             />
 
-            <div className="flex flex-col gap-1 w-full sm:w-auto">
-                <label className="text-sm font-medium invisible hidden sm:block">Clear</label>
+            <div className="flex flex-col gap-1 w-full xl:w-auto">
+                {/* On mobile, don't hide the label so it matches the height of the selects above it if they wrap */}
+                <label className="text-sm font-medium invisible hidden xl:block">Clear</label>
                 <button
                     onClick={handleClearFilters}
                     type="button"
@@ -82,6 +86,6 @@ export const Filters: React.FC = () => {
                     Clear filters
                 </button>
             </div>
-        </div>
+        </form>
     );
 };
