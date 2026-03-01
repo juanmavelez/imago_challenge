@@ -15,19 +15,27 @@ export const FILTER_KEYS = [
 export const useFilters = () => {
     const { getParam, updateParams } = useUrlParams();
 
-    const filters = useMemo(() => ({
-        dateSort: getParam(QUERY_PARAMS.DATE_SORT, SORT_OPTIONS.LATEST),
-        selectedCredit: getParam(QUERY_PARAMS.CREDIT),
-        dateStart: getParam(QUERY_PARAMS.DATE_START),
-        dateEnd: getParam(QUERY_PARAMS.DATE_END),
-        restrictions: getParam(QUERY_PARAMS.RESTRICTIONS),
-    }), [getParam]);
+    const filters = useMemo(() => {
+        const defaultSort = SORT_OPTIONS.RELEVANCE;
 
-    const hasFilters = filters.dateSort !== SORT_OPTIONS.LATEST ||
-        filters.selectedCredit !== "" ||
-        filters.dateStart !== "" ||
-        filters.dateEnd !== "" ||
-        filters.restrictions !== "";
+        return {
+            dateSort: getParam(QUERY_PARAMS.DATE_SORT, defaultSort),
+            selectedCredit: getParam(QUERY_PARAMS.CREDIT),
+            dateStart: getParam(QUERY_PARAMS.DATE_START),
+            dateEnd: getParam(QUERY_PARAMS.DATE_END),
+            restrictions: getParam(QUERY_PARAMS.RESTRICTIONS),
+        };
+    }, [getParam]);
+
+    const hasFilters = useMemo(() => {
+        const defaultSort = SORT_OPTIONS.RELEVANCE;
+
+        return filters.dateSort !== defaultSort ||
+            filters.selectedCredit !== "" ||
+            filters.dateStart !== "" ||
+            filters.dateEnd !== "" ||
+            filters.restrictions !== "";
+    }, [filters, getParam]);
 
     const handleFilterChange = useCallback((key: string, value: string) => {
         updateParams({ [key]: value });

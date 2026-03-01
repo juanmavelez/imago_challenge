@@ -16,7 +16,8 @@ const Home = async (props: PageProps) => {
   // We ensure we only pass the expected primitive types (string/number) to the Service.
   const query = typeof searchParams.query === "string" ? searchParams.query : "";
   const page = typeof searchParams.page === "string" ? parseInt(searchParams.page, 10) : 1;
-  const dateSort = typeof searchParams.dateSort === "string" ? searchParams.dateSort : SORT_OPTIONS.LATEST;
+  const defaultSort = SORT_OPTIONS.RELEVANCE;
+  const dateSort = typeof searchParams.dateSort === "string" ? searchParams.dateSort : defaultSort;
   const credit = typeof searchParams.credit === "string" ? searchParams.credit : null;
   const restrictions = typeof searchParams.restrictions === "string" ? searchParams.restrictions : null;
   const dateStart = typeof searchParams.dateStart === "string" ? searchParams.dateStart : null;

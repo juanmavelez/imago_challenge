@@ -63,10 +63,6 @@ export class SearchEngine {
 
         const scores = new Map<string, number>();
 
-        /* 
-            Updated to use AND logic instead of the MVP OR logic.
-            An item must contain all unique tokens in the search query to be returned.
-        */
         const uniqueQueryTokens = Array.from(new Set(queryTokens));
         const requiredTokenCount = uniqueQueryTokens.length;
 
@@ -76,13 +72,10 @@ export class SearchEngine {
             const matchingItems = this.invertedIndexMap.get(token);
 
             if (matchingItems) {
-                // Calculate IDF for this specific token
                 const documentFrequency = matchingItems.size;
-                // Add 1 to avoid division by zero or negative logs
                 const idf = Math.log(this.documentCount / (documentFrequency || 1)) + 1;
 
                 for (const [id, tfScore] of matchingItems.entries()) {
-                    // Combine TF and IDF
                     const tfIdfScore = tfScore * idf;
                     scores.set(id, (scores.get(id) || 0) + tfIdfScore);
                     tokenCounts.set(id, (tokenCounts.get(id) || 0) + 1);

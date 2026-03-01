@@ -1,4 +1,5 @@
 export const SORT_OPTIONS = {
+    RELEVANCE: "relevance",
     LATEST: "latest",
     OLDEST: "oldest",
 } as const;

@@ -23,6 +23,7 @@ export const Filters: React.FC = () => {
                 value={dateSort}
                 onChange={(val) => handleFilterChange(QUERY_PARAMS.DATE_SORT, val)}
                 options={[
+                    { value: SORT_OPTIONS.RELEVANCE, label: "Relevance" },
                     { value: SORT_OPTIONS.LATEST, label: "Latest first" },
                     { value: SORT_OPTIONS.OLDEST, label: "Oldest first" }
                 ]}
