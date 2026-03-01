@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { SearchService } from "./SearchService";
 import { QUERY_PARAMS } from "@/app/constants/queryParams";
+import { AnalyticsStore } from "@/lib/analytics/AnalyticsStore";
 
 export async function GET(request: NextRequest) {
     try {
@@ -16,7 +17,8 @@ export async function GET(request: NextRequest) {
         const dateStart = searchParams.get(QUERY_PARAMS.DATE_START);
         const dateEnd = searchParams.get(QUERY_PARAMS.DATE_END);
 
-        // Delegate business logic to the SearchService
+        console.log("I AM HERE")
+        const startTime = performance.now();
         const result = SearchService.executeSearch({
             query,
             page,
@@ -27,6 +29,10 @@ export async function GET(request: NextRequest) {
             dateStart,
             dateEnd
         });
+        const endTime = performance.now();
+
+        console.log("I AM HERE")
+        AnalyticsStore.trackSearch(query, endTime - startTime);
 
         return NextResponse.json(result);
     } catch (error) {

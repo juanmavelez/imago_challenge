@@ -9,5 +9,4 @@ export const QUERY_PARAMS = {
     RESTRICTIONS: "restrictions",
 } as const;
 
-// Optional type helper if you want to enforce these exact strings
 export type QueryParamKey = typeof QUERY_PARAMS[keyof typeof QUERY_PARAMS];

@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "IMAGO_SEARCH_ENGINE",
+  title: "Imago seach engine",
   description: "Basic search engine for Imago",
 };
 

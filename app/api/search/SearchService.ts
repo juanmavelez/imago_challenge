@@ -25,21 +25,21 @@ export class SearchService {
         let results: ProcessedMediaItem[] = [];
         if (query) {
             const resultIds = engine.search(query);
-            // 2. Hydration (IDs to Objects) only for matched query IDs
             results = resultIds.map(id => itemsMap.get(id)!).filter(Boolean);
         } else {
-            // If no query, just grab the values without the intermediate ID mapping
             results = Array.from(itemsMap.values());
         }
 
-        // 3. Post-Search Filtering
+        // Post-Search Filtering
         results = applyFilters(results, credit, restrictions, dateStart, dateEnd);
 
-        // 4. Sorting
+        // Sorting
         results = applySorting(results, dateSort);
 
-        // 5. Pagination
-        return applyPagination(results, page, limit);
+        // Pagination
+        const paginatedResult = applyPagination(results, page, limit);
+
+        return paginatedResult;
     }
 
 }
