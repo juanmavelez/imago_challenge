@@ -58,31 +58,31 @@ export default function AnalyticsDashboard() {
     return (
         <div className="min-h-screen bg-neutral-950 p-8 font-sans text-neutral-100">
             <div className="mx-auto max-w-5xl">
-                <header className="mb-8 flex items-center justify-between">
+                <header className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight text-white mb-2">Search Analytics</h1>
-                        <p className="text-neutral-400">Real-time metrics from the IMAGO Search Engine API.</p>
+                        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white mb-1">Search Analytics</h1>
+                        <p className="text-sm text-neutral-400">Real-time metrics from the IMAGO Search Engine API.</p>
                     </div>
-                    <div className="flex gap-4">
+                    <div className="flex flex-wrap gap-2 sm:gap-4">
                         <button
                             onClick={handleFlush}
                             disabled={flushing || loading}
-                            className="rounded-md bg-red-900/20 border border-red-900/50 text-red-500 px-4 py-2 text-sm font-medium hover:bg-red-900/30 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-neutral-950 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="flex-1 sm:flex-none rounded-md bg-red-900/20 border border-red-900/50 text-red-500 px-3 py-2 text-xs sm:text-sm font-medium hover:bg-red-900/30 transition-colors disabled:opacity-50"
                         >
                             {flushing ? "Flushing..." : "Flush Data"}
                         </button>
                         <button
                             onClick={fetchStats}
                             disabled={loading}
-                            className="rounded-md bg-neutral-800 px-4 py-2 text-sm font-medium hover:bg-neutral-700 transition-colors focus:outline-none focus:ring-2 focus:ring-neutral-400 focus:ring-offset-2 focus:ring-offset-neutral-950 disabled:opacity-50"
+                            className="flex-1 sm:flex-none rounded-md bg-neutral-800 px-3 py-2 text-xs sm:text-sm font-medium hover:bg-neutral-700 transition-colors disabled:opacity-50"
                         >
-                            {loading && stats ? "Refreshing..." : "Refresh Data"}
+                            {loading && stats ? "Refresing..." : "Refresh"}
                         </button>
                         <Link
                             href="/"
-                            className="rounded-md bg-white text-black px-4 py-2 text-sm font-medium hover:bg-neutral-200 transition-colors flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-neutral-950"
+                            className="flex-1 sm:flex-none rounded-md bg-white text-black px-3 py-2 text-xs sm:text-sm font-medium hover:bg-neutral-200 transition-colors flex items-center justify-center"
                         >
-                            Back to Search
+                            Back
                         </Link>
                     </div>
                 </header>
