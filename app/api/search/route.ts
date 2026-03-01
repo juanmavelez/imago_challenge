@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { SearchService } from "./SearchService";
+import { executeSearch } from "./SearchService";
 import { QUERY_PARAMS } from "@/app/constants/queryParams";
 import { AnalyticsStore } from "@/lib/analytics/AnalyticsStore";
 
@@ -7,19 +7,18 @@ export async function GET(request: NextRequest) {
     try {
         const searchParams = request.nextUrl.searchParams;
 
-        // Parse query parameters
+        // Parse and validate query parameters
         const query = searchParams.get(QUERY_PARAMS.QUERY) || "";
-        const page = parseInt(searchParams.get(QUERY_PARAMS.PAGE) || "1", 10);
-        const limit = parseInt(searchParams.get(QUERY_PARAMS.LIMIT) || "20", 10);
-        const dateSort = searchParams.get(QUERY_PARAMS.DATE_SORT); // 'latest' | 'oldest'
-        const restrictions = searchParams.get(QUERY_PARAMS.RESTRICTIONS); // comma separated
+        const page = Math.max(1, parseInt(searchParams.get(QUERY_PARAMS.PAGE) || "1", 10));
+        const limit = Math.min(100, Math.max(1, parseInt(searchParams.get(QUERY_PARAMS.LIMIT) || "20", 10)));
+        const dateSort = searchParams.get(QUERY_PARAMS.DATE_SORT);
+        const restrictions = searchParams.get(QUERY_PARAMS.RESTRICTIONS);
         const credit = searchParams.get(QUERY_PARAMS.CREDIT);
         const dateStart = searchParams.get(QUERY_PARAMS.DATE_START);
         const dateEnd = searchParams.get(QUERY_PARAMS.DATE_END);
 
-        console.log("I AM HERE")
         const startTime = performance.now();
-        const result = SearchService.executeSearch({
+        const result = executeSearch({
             query,
             page,
             limit,
@@ -31,7 +30,6 @@ export async function GET(request: NextRequest) {
         });
         const endTime = performance.now();
 
-        console.log("I AM HERE")
         AnalyticsStore.trackSearch(query, endTime - startTime);
 
         return NextResponse.json(result);

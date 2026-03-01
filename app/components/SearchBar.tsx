@@ -1,33 +1,22 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useSearchParams, usePathname, useRouter } from "next/navigation";
 import { useDebouncedCallback } from "use-debounce";
+import { useUrlParams } from "@/app/hooks/useUrlParams";
 import { QUERY_PARAMS } from "@/app/constants/queryParams";
 
 export const SearchBar: React.FC = () => {
-    const searchParams = useSearchParams();
-    const pathname = usePathname();
-    const { replace } = useRouter();
+    const { getParam, updateParams } = useUrlParams();
 
-    const currentQuery = searchParams.get(QUERY_PARAMS.QUERY)?.toString() || "";
+    const currentQuery = getParam(QUERY_PARAMS.QUERY);
     const [inputValue, setInputValue] = useState(currentQuery);
-
 
     useEffect(() => {
         setInputValue(currentQuery);
     }, [currentQuery]);
 
     const handleSearch = useDebouncedCallback((term: string) => {
-        const params = new URLSearchParams(searchParams);
-        params.set(QUERY_PARAMS.PAGE, "1"); // Reset to page 1 on new search
-
-        if (term) {
-            params.set(QUERY_PARAMS.QUERY, term);
-        } else {
-            params.delete(QUERY_PARAMS.QUERY);
-        }
-        replace(`${pathname}?${params.toString()}`);
+        updateParams({ [QUERY_PARAMS.QUERY]: term || null });
     }, 300);
 
     return (

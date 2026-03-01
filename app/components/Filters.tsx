@@ -29,7 +29,8 @@ export const Filters: React.FC = () => {
                 ]}
             />
 
-            {/* The photographer list should come from the backend */}
+            {/* TODO: Photographer list should be derived from data (e.g., a /api/facets endpoint) */}
+
             <FilterSelect
                 label="Photographer"
                 value={selectedCredit}
@@ -58,7 +59,7 @@ export const Filters: React.FC = () => {
 
 
 
-            {/* The Restrictions list should come from the backend */}
+            {/* TODO: Restrictions list should be derived from data (e.g., a /api/facets endpoint) */}
             <FilterSelect
                 label="Restrictions"
                 value={restrictions}

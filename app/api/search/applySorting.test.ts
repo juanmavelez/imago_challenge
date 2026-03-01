@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { applySorting } from "./applySorting";
 import { ProcessedMediaItem } from "@/lib/search-engine/DataProcessor";
-import { SORT_OPTIONS } from "@/app/constants/sortOptions";
+
 
 describe("Search API Utils - Sorting", () => {
     const mockData: ProcessedMediaItem[] = [
@@ -11,7 +11,7 @@ describe("Search API Utils - Sorting", () => {
     ];
 
     it("should sort correctly by 'latest'", () => {
-        const res = applySorting(mockData, SORT_OPTIONS.LATEST);
+        const res = applySorting(mockData, "latest");
         expect(res.map(r => r.id)).toEqual(["2", "3", "1"]);
     });
 

@@ -14,8 +14,7 @@ interface AnalyticsData {
     keywordFrequencies: Record<string, number>;
 }
 
-// Use a data folder at the project root to persist across reloads
-// Alternatively, could use /tmp/analytics.json for temporary local but project root is better here
+// Use a data folder at the project root to persist across reload
 const DATA_DIR = path.join(process.cwd(), "data");
 const FILE_PATH = path.join(DATA_DIR, "analytics.json");
 const MAX_RESPONSE_TIMES = 1000;
@@ -55,7 +54,6 @@ export class AnalyticsStore {
 
         data.totalSearches += 1;
 
-        console.log("TRACKING")
         data.recentResponseTimes.push(durationMs);
         if (data.recentResponseTimes.length > MAX_RESPONSE_TIMES) {
             // remove the oldest elements to stay at max limit

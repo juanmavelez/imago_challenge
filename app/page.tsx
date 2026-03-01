@@ -1,9 +1,8 @@
 import { Header } from "./components/Header";
 import { SearchControls } from "./components/SearchControls";
 import { MainResults } from "./components/MainResults";
-import { SearchService } from "./api/search/SearchService";
+import { executeSearch } from "./api/search/SearchService";
 import { SORT_OPTIONS } from "@/app/constants/sortOptions";
-import { AnalyticsStore } from "@/lib/analytics/AnalyticsStore";
 
 type PageProps = {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -24,9 +23,7 @@ const Home = async (props: PageProps) => {
   const dateStart = typeof searchParams.dateStart === "string" ? searchParams.dateStart : null;
   const dateEnd = typeof searchParams.dateEnd === "string" ? searchParams.dateEnd : null;
 
-
-  const startTime = performance.now();
-  const result = SearchService.executeSearch({
+  const result = executeSearch({
     query,
     page: page || 1,
     limit: 20,
@@ -36,9 +33,6 @@ const Home = async (props: PageProps) => {
     dateStart,
     dateEnd
   });
-  const endTime = performance.now();
-
-  AnalyticsStore.trackSearch(query, endTime - startTime);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-zinc-950 text-gray-900 dark:text-gray-100 font-sans p-6 sm:p-12">

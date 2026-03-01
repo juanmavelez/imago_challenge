@@ -35,7 +35,7 @@ export const useFilters = () => {
             filters.dateStart !== "" ||
             filters.dateEnd !== "" ||
             filters.restrictions !== "";
-    }, [filters, getParam]);
+    }, [filters]);
 
     const handleFilterChange = useCallback((key: string, value: string) => {
         updateParams({ [key]: value });

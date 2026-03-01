@@ -95,31 +95,32 @@ export default function AnalyticsDashboard() {
                                 <p className="text-neutral-500 text-center py-8">No keywords recorded yet. Try doing some searches!</p>
                             ) : (
                                 <div className="space-y-4">
-                                    {stats.popularKeywords.map((item, index) => {
-                                        // Calculate percentage for a visual bar (relative to the most popular item)
+                                    {(() => {
                                         const maxCount = Math.max(...stats.popularKeywords.map(k => k.count));
-                                        const percentage = Math.max(5, (item.count / maxCount) * 100);
+                                        return stats.popularKeywords.map((item, index) => {
+                                            const percentage = Math.max(5, (item.count / maxCount) * 100);
 
-                                        return (
-                                            <div key={item.keyword} className="flex items-center gap-4 group">
-                                                <div className="w-6 text-center text-neutral-500 text-sm font-mono border border-neutral-800 rounded-md py-0.5 bg-neutral-950/50">
-                                                    #{index + 1}
+                                            return (
+                                                <div key={item.keyword} className="flex items-center gap-4 group">
+                                                    <div className="w-6 text-center text-neutral-500 text-sm font-mono border border-neutral-800 rounded-md py-0.5 bg-neutral-950/50">
+                                                        #{index + 1}
+                                                    </div>
+                                                    <div className="w-32 lg:w-48 text-neutral-200 truncate font-medium text-sm">
+                                                        "{item.keyword}"
+                                                    </div>
+                                                    <div className="flex-1 h-3 bg-neutral-950 rounded-full overflow-hidden border border-neutral-800">
+                                                        <div
+                                                            className="h-full bg-gradient-to-r from-neutral-600 to-white rounded-full transition-all duration-1000 ease-out group-hover:brightness-125"
+                                                            style={{ width: `${percentage}%` }}
+                                                        ></div>
+                                                    </div>
+                                                    <div className="w-12 text-right text-sm font-medium text-neutral-400 bg-neutral-800/50 rounded-md py-1 px-2 border border-neutral-800">
+                                                        {item.count}
+                                                    </div>
                                                 </div>
-                                                <div className="w-32 lg:w-48 text-neutral-200 truncate font-medium text-sm">
-                                                    "{item.keyword}"
-                                                </div>
-                                                <div className="flex-1 h-3 bg-neutral-950 rounded-full overflow-hidden border border-neutral-800">
-                                                    <div
-                                                        className="h-full bg-gradient-to-r from-neutral-600 to-white rounded-full transition-all duration-1000 ease-out group-hover:brightness-125"
-                                                        style={{ width: `${percentage}%` }}
-                                                    ></div>
-                                                </div>
-                                                <div className="w-12 text-right text-sm font-medium text-neutral-400 bg-neutral-800/50 rounded-md py-1 px-2 border border-neutral-800">
-                                                    {item.count}
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
+                                            );
+                                        });
+                                    })()}
                                 </div>
                             )}
                         </div>

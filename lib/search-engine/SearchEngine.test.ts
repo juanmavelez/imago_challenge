@@ -39,10 +39,12 @@ describe("SearchEngine", () => {
             expect(results).toEqual(["1"]);
         });
 
-        it("finds matches with multiple words (AND logic)", () => {
+        it("ranks items matching more query tokens higher", () => {
             const results = engine.search("John banana");
-            // With AND logic, only item 1 has both "John" and "banana"
-            expect(results).toEqual(["1"]);
+            // OR-with-ranking: item 1 matches both "John" and "banana", so it ranks first.
+            // Items 2 ("banana") and 3 ("John") match one token each.
+            expect(results[0]).toBe("1");
+            expect(results.length).toBe(3);
         });
 
         it("ranks exactly matching tokens higher due to accumulated weights", () => {

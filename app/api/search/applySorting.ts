@@ -1,10 +1,12 @@
 import { ProcessedMediaItem } from "@/lib/search-engine/DataProcessor";
-import { SORT_OPTIONS } from "@/app/constants/sortOptions";
+
+const SORT_LATEST = "latest";
+const SORT_OLDEST = "oldest";
 
 export function applySorting(results: ProcessedMediaItem[], dateSort?: string | null): ProcessedMediaItem[] {
-    if (dateSort === SORT_OPTIONS.LATEST) {
+    if (dateSort === SORT_LATEST) {
         return [...results].sort((a, b) => b.timestamp - a.timestamp);
-    } else if (dateSort === SORT_OPTIONS.OLDEST) {
+    } else if (dateSort === SORT_OLDEST) {
         return [...results].sort((a, b) => a.timestamp - b.timestamp);
     }
     return results; // Return as-is if no valid sort provided
