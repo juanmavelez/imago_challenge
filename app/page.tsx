@@ -2,6 +2,7 @@ import { Header } from "./components/Header";
 import { SearchControls } from "./components/SearchControls";
 import { MainResults } from "./components/MainResults";
 import { SearchService } from "./api/search/SearchService";
+import { SORT_OPTIONS } from "@/app/constants/sortOptions";
 
 type PageProps = {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -15,8 +16,11 @@ const Home = async (props: PageProps) => {
   // We ensure we only pass the expected primitive types (string/number) to the Service.
   const query = typeof searchParams.query === "string" ? searchParams.query : "";
   const page = typeof searchParams.page === "string" ? parseInt(searchParams.page, 10) : 1;
-  const dateSort = typeof searchParams.dateSort === "string" ? searchParams.dateSort : "latest";
+  const dateSort = typeof searchParams.dateSort === "string" ? searchParams.dateSort : SORT_OPTIONS.LATEST;
   const credit = typeof searchParams.credit === "string" ? searchParams.credit : null;
+  const restrictions = typeof searchParams.restrictions === "string" ? searchParams.restrictions : null;
+  const dateStart = typeof searchParams.dateStart === "string" ? searchParams.dateStart : null;
+  const dateEnd = typeof searchParams.dateEnd === "string" ? searchParams.dateEnd : null;
 
 
   const result = SearchService.executeSearch({
@@ -25,6 +29,9 @@ const Home = async (props: PageProps) => {
     limit: 20,
     dateSort,
     credit,
+    restrictions,
+    dateStart,
+    dateEnd
   });
 
   return (

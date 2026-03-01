@@ -1,22 +1,31 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
 import { useDebouncedCallback } from "use-debounce";
+import { QUERY_PARAMS } from "@/app/constants/queryParams";
 
 export const SearchBar: React.FC = () => {
     const searchParams = useSearchParams();
     const pathname = usePathname();
     const { replace } = useRouter();
 
+    const currentQuery = searchParams.get(QUERY_PARAMS.QUERY)?.toString() || "";
+    const [inputValue, setInputValue] = useState(currentQuery);
+
+
+    useEffect(() => {
+        setInputValue(currentQuery);
+    }, [currentQuery]);
+
     const handleSearch = useDebouncedCallback((term: string) => {
         const params = new URLSearchParams(searchParams);
-        params.set("page", "1"); // Reset to page 1 on new search
+        params.set(QUERY_PARAMS.PAGE, "1"); // Reset to page 1 on new search
 
         if (term) {
-            params.set("query", term);
+            params.set(QUERY_PARAMS.QUERY, term);
         } else {
-            params.delete("query");
+            params.delete(QUERY_PARAMS.QUERY);
         }
         replace(`${pathname}?${params.toString()}`);
     }, 300);
@@ -32,8 +41,11 @@ export const SearchBar: React.FC = () => {
                 type="text"
                 className="w-full bg-gray-50 border border-gray-300 text-gray-900 text-lg rounded-xl focus:ring-blue-500 focus:border-blue-500 block pl-12 p-4 dark:bg-zinc-950 dark:border-zinc-700 dark:placeholder-gray-500 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 transition-all shadow-sm"
                 placeholder="Search high-quality editorial images... e.g., 'nature', 'Michael Jackson'"
-                onChange={(e) => handleSearch(e.target.value)}
-                defaultValue={searchParams.get("query")?.toString()}
+                value={inputValue}
+                onChange={(e) => {
+                    setInputValue(e.target.value);
+                    handleSearch(e.target.value);
+                }}
             />
         </div>
     );

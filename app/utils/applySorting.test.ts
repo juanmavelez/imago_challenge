@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { applySorting } from "./applySorting";
 import { ProcessedMediaItem } from "@/lib/search-engine/DataProcessor";
+import { SORT_OPTIONS } from "@/app/constants/sortOptions";
 
 describe("Search API Utils - Sorting", () => {
     const mockData: ProcessedMediaItem[] = [
@@ -9,8 +10,8 @@ describe("Search API Utils - Sorting", () => {
         { id: "3", suchtext: "", fotografen: "", restrictions: [], bildnummer: "", datum: "", hoehe: "", width: 0, height: 0, timestamp: 200 },
     ];
 
-    it("should sort latest (descending)", () => {
-        const res = applySorting(mockData, "latest");
+    it("should sort correctly by 'latest'", () => {
+        const res = applySorting(mockData, SORT_OPTIONS.LATEST);
         expect(res.map(r => r.id)).toEqual(["2", "3", "1"]);
     });
 

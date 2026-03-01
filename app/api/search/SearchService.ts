@@ -11,6 +11,8 @@ export interface SearchOptions {
     dateSort?: string | null;
     restrictions?: string | null;
     credit?: string | null;
+    dateStart?: string | null;
+    dateEnd?: string | null;
 }
 
 
@@ -18,7 +20,7 @@ export interface SearchOptions {
 export class SearchService {
     public static executeSearch(options: SearchOptions): PaginatedResult<ProcessedMediaItem> {
         const { engine, itemsMap } = getStorage();
-        const { query, page, limit, dateSort, restrictions, credit } = options;
+        const { query, page, limit, dateSort, restrictions, credit, dateStart, dateEnd } = options;
 
         let results: ProcessedMediaItem[] = [];
         if (query) {
@@ -31,7 +33,7 @@ export class SearchService {
         }
 
         // 3. Post-Search Filtering
-        results = applyFilters(results, credit, restrictions);
+        results = applyFilters(results, credit, restrictions, dateStart, dateEnd);
 
         // 4. Sorting
         results = applySorting(results, dateSort);

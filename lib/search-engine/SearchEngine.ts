@@ -90,11 +90,21 @@ export class SearchEngine {
             }
         }
 
-        // Filter and sort IDs by highest score descending
+        // Filter and sort IDs by highest matched tokens first, then score descending
         const rankedIds = Array.from(scores.entries())
-            .filter(([id]) => tokenCounts.get(id) === requiredTokenCount)
-            .sort((a, b) => b[1] - a[1]) // Compare scores descending
-            .map(([id]) => id);          // Return only IDs
+            .map(([id, score]) => ({
+                id,
+                score,
+                matchedTokens: tokenCounts.get(id) || 0
+            }))
+            .filter(item => item.matchedTokens > 0) // At least 1 token must match
+            .sort((a, b) => {
+                if (b.matchedTokens !== a.matchedTokens) {
+                    return b.matchedTokens - a.matchedTokens; // More matched tokens rank higher
+                }
+                return b.score - a.score; // Tie-breaker: TF-IDF score
+            })
+            .map(item => item.id);
 
         return rankedIds;
     }

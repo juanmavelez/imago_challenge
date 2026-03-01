@@ -45,17 +45,24 @@ export class DataProcessor {
         if (!text) return { cleanText: "", restrictions: [] };
 
         const restrictions: string[] = [];
-        // Match anything inside brackets [ ... ]
-        const regex = /\[(.*?)\]/g;
 
-        const cleanText = text.replace(regex, (match, group1) => {
+        // 1. Match specific token tags like PUBLICATIONxINxGERxSUIxAUTxONLY
+        const restrictionRegex = /\b[A-Z]+(?:x[A-Z]+)+\b/g;
+        let cleanText = text.replace(restrictionRegex, (match) => {
+            restrictions.push(match);
+            return match; // Keep in text so it can be keyword-searched
+        });
+
+        // 2. Fallback to extracting bracketed text like [RESTRICTED]
+        const bracketRegex = /\[(.*?)\]/g;
+        cleanText = cleanText.replace(bracketRegex, (match, group1) => {
             restrictions.push(group1.trim());
-            return "";
+            return ""; // Remove brackets from searchable text
         }).trim();
 
         return {
             cleanText: cleanText.replace(/\s+/g, " "),
-            restrictions
+            restrictions: Array.from(new Set(restrictions))
         };
     }
 }
