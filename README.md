@@ -49,6 +49,71 @@ The system is designed around three core principles:
 
 ## Architecture Overview
 
+### Clean Architecture — The `lib/` Boundary
+
+The project follows a **Clean Architecture** principle: core business logic lives in `lib/` and has **zero imports from Next.js or any framework-specific code**. The `lib/` directory contains two self-contained modules — `search-engine` and `analytics` — that depend only on Node.js built-ins and the TypeScript standard library.
+
+**Why this matters:**
+
+- **Removability.** Either module can be extracted from the project and dropped into a completely different runtime (an Express server, a Deno service, a CLI tool) without changing a single import. If the search engine is ever replaced by Elasticsearch, the entire `lib/search-engine/` directory can be deleted and no `app/` file will break beyond the direct import site.
+- **Testability.** Because `lib/` modules have no framework coupling, their unit tests run in pure Node.js without mocking Next.js internals. This is why the 35-test suite covers `lib/` thoroughly and executes in milliseconds.
+- **Dependency direction.** The dependency arrow always points inward: `app/` depends on `lib/`, never the reverse. The `app/` layer (routes, components, hooks) is the delivery mechanism; `lib/` is the engine. This follows the [Dependency Rule](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html) — source code dependencies must point inward, toward higher-level policies.
+
+```
+┌─────────────────────────────────────────────────┐
+│  lib/  (framework-agnostic core)                │
+│                                                 │
+│  search-engine/          analytics/             │
+│    SearchEngine.ts         AnalyticsStore.ts     │
+│    DataProcessor.ts                              │
+│    tokenize.ts                                   │
+│    normalizeDate.ts                              │
+│    singleton.ts                                  │
+│    *.test.ts                                     │
+└───────────────────────┬─────────────────────────┘
+                        │  imports (dependency arrow)
+                        ▼
+┌─────────────────────────────────────────────────┐
+│  app/  (Next.js delivery layer)                 │
+│                                                 │
+│  page.tsx, layout.tsx                           │
+│  api/search/  (route + service + filters/sort)  │
+│  api/analytics/  (route)                        │
+│  components/  (UI)                              │
+│  hooks/  (client-side state)                    │
+│  constants/, types/                             │
+└─────────────────────────────────────────────────┘
+```
+
+### Co-location Principle
+
+Inside `app/`, the project follows the **co-location principle**: *"Things that change together should be located as close as reasonable"* — [Dan Abramov](https://povio.com/blog/maintainability-with-colocation). Instead of grouping files by technical role (all services in one folder, all tests in another), related files are grouped by feature.
+
+For example, the search API route co-locates its handler, service, helper functions, **and their tests** in a single directory:
+
+```
+app/api/search/
+  route.ts                 # HTTP handler (GET /api/search)
+  SearchService.ts         # Orchestration: search → filter → sort → paginate
+  applyFilters.ts          # Filter logic
+  applyFilters.test.ts     # Tests for filter logic
+  applySorting.ts          # Sorting logic
+  applySorting.test.ts     # Tests for sorting logic
+  applyPagination.ts       # Pagination logic
+  applyPagination.test.ts  # Tests for pagination logic
+```
+
+**Benefits of this approach:**
+
+- **Discoverability.** When investigating a bug in search filtering, every relevant file is visible without navigating across distant directories. You open one folder and the full picture is there.
+- **Safe deletion.** If a feature is removed, its entire directory can be deleted. There is no risk of leaving orphaned utility functions or test files scattered across `utils/`, `services/`, or `__tests__/` folders — a common maintenance trap in projects that separate by technical concern.
+- **Reduced cognitive overhead.** Developers working on the search pipeline do not need a mental map of the full project tree. The blast radius of any change is contained within the feature directory.
+- **Team scalability.** New team members can onboard on a single feature by focusing on one directory, without navigating the entire codebase.
+
+> **Reference:** For a deeper dive into co-location, see [Maintainability with Colocation (Povio)](https://povio.com/blog/maintainability-with-colocation) and the [Bulletproof React](https://github.com/alan2207/bulletproof-react) project structure.
+
+### Request Flow
+
 ```
 Browser
   |
@@ -72,7 +137,7 @@ Additionally:
   /analytics         --> dashboard UI for metrics visualization
 ```
 
-**Key modules:**
+### Key Modules
 
 | Module | Location | Responsibility |
 |---|---|---|
