@@ -35,17 +35,7 @@ npm install
 npm run dev
 ```
 
-This automatically generates the synthetic dataset (`data/data.json`) via the `predev` hook, then starts the Next.js development server at `http://localhost:3000`.
-
-### Docker
-
-```bash
-docker compose up --build
-```
-
-The container generates the dataset at build time, runs the Next.js standalone server, and persists analytics data via a Docker volume.
-
----
+This automatically generates the synthetic dataset (`data/data.json`) then starts the Next.js development server at `http://localhost:3000`
 
 ## High-Level Approach
 
@@ -172,7 +162,7 @@ All preprocessing runs once, lazily, on the first request. The `getStorage()` si
 
 ### Data generation
 
-A script (`scripts/generate-data.ts`) generates 10,000 synthetic media items with randomized photographers, subjects, dates, and dimensions. It runs automatically before `npm run dev` via the `predev` hook and at Docker build time.
+A script (`scripts/generate-data.ts`) generates 10,000 synthetic media items with randomized photographers, subjects, dates, and dimensions. It runs automatically before `npm run dev` and at Docker build time.
 
 ### Updating the index for new items
 
@@ -191,7 +181,7 @@ No full re-index is required. The inverted index structure (nested Maps) support
 ### Current performance (10,000 items)
 
 - Index construction: approximately 50-100ms on first request.
-- Query latency: sub-millisecond for most queries (measured via analytics).
+- Query latency: millisecond for most queries (measured via analytics).
 - Memory footprint: the inverted index and items map fit comfortably in a single Node.js process.
 
 ### Scaling to millions of items
@@ -229,6 +219,42 @@ For a production deployment, the ingestion would be decoupled from the API serve
 
 ---
 
+## Testing Approach
+
+### Strategy
+
+The project uses **Vitest** as the test runner, chosen for its native TypeScript and ESM support, fast startup, and Vite-compatible module resolution (important for `@/` path aliases).
+
+Testing is focused on the **backend search pipeline**, where correctness is critical and the logic is most complex. The frontend components are Server/Client Components have been left our due time constrains. For a production environment, each UI component should have an unit tests, I would recommend [testing-library](https://testing-library.com/), to test simulating user behaviour ("click button", "type on form").
+
+### Test coverage
+
+| Module | File | Tests | What is tested |
+|---|---|---|---|
+| `SearchEngine` | `SearchEngine.test.ts` | 6 | Index construction, empty/no-match queries, single-token search, multi-token ranking, accumulated weight scoring |
+| `DataProcessor` | `DataProcessor.test.ts` | 6 | Raw-to-processed transformation, restriction extraction (regex + bracket), date parsing/fallback, missing/malformed fields |
+| `tokenize` | `tokenize.test.ts` | 6 | Falsy input, case folding, punctuation stripping, numeric tokens, whitespace normalization, German umlauts |
+| `normalizeDate` | `normalizeDate.test.ts` | 5 | DD.MM.YYYY parsing, ISO fallback, empty string, completely invalid input, malformed dot notation |
+| `applyFilters` | `applyFilters.test.ts` | 5 | Case-insensitive credit filter, multi-credit, single restriction, multi-restriction AND logic, combined filters |
+| `applySorting` | `applySorting.test.ts` | 3 | Latest (descending), oldest (ascending), null/invalid sort passthrough |
+| `applyPagination` | `applyPagination.test.ts` | 4 | First page, middle page, partial last page, out-of-bounds |
+
+**Total: 35 tests across 7 files.**
+
+### Running tests
+
+```bash
+npm test
+```
+
+### What would come next
+
+- **Integration test for `executeSearch`** - a single test calling the full pipeline (search → filter → sort → paginate) with realistic options, verifying end-to-end correctness.
+- **API route tests** - using `next/test-utils` or supertest to validate the HTTP layer, including parameter parsing, error responses, and analytics tracking.
+- **End-to-end (E2E) tests** - to complete the [testing pyramid](https://martinfowler.com/articles/practical-test-pyramid.html), we would need to review the user navigation are are e2e test that would verify that the most critical parts of the application works on production before deploying to production. To archive this tools such as [playright](https://playwright.dev/) or [cypress](https://www.cypress.io/#create) would do the job.
+
+---
+
 ## Assumptions
 
 1. **`bildnummer` as unique ID.** The raw data has no explicit `id` field. `bildnummer` is used as the unique identifier since it represents an image number.
@@ -236,6 +262,7 @@ For a production deployment, the ingestion would be decoupled from the API serve
 3. **Dates are in German format.** All `datum` values follow `DD.MM.YYYY`. A fallback parser handles other formats gracefully.
 4. **Synthetic data is acceptable.** The challenge provides two example items. The data generator creates 10,000 items with realistic structure and randomization for demonstration purposes.
 5. **Photographer list is static.** The filter dropdown uses a hardcoded list derived from the data generator. In production, this would come from a `/api/facets` endpoint.
+6. **OR semantics for multi-word queries.** A query like "Michael Jackson" returns documents matching either "michael" OR "jackson", ranked by how many tokens match and their TF-IDF scores. This is a reasonable default for an image library where users may not know the exact metadata wording.
 
 ---
 
@@ -249,6 +276,7 @@ For a production deployment, the ingestion would be decoupled from the API serve
 | Offset pagination | Simple implementation, familiar UX pattern | Performance degrades on deep pages with very large datasets |
 | No stop-word removal | Preserves all searchable terms in terse metadata | Slightly noisier results for common words |
 | Synthetic data | Demonstrates search at scale without real data | Does not capture real-world metadata inconsistencies |
+| Field-weighted TF (Set-based) | Simple, predictable scoring; prevents long descriptions from dominating | Ignores intra-field term frequency (e.g., "apple apple" scores same as "apple") |
 
 ---
 
@@ -256,7 +284,7 @@ For a production deployment, the ingestion would be decoupled from the API serve
 
 - **No partial or typo-tolerant search.** The search currently only finds exact word matches. Future improvements could include "starts-with" matching (so "Cat" matches "Category") or "fuzzy" matching to handle typos (so "Micael" still matches "Michael").
 - **No faceted counts.** The filter dropdowns do not show how many results each option yields. A facets API would provide counts for each filter value based on the current query.
-- **Static filter options.** Photographer and restriction options are hardcoded. They should be derived dynamically from the dataset.
-- **Single-process analytics.** The file-based `AnalyticsStore` does not handle concurrent writes safely. A production system would use a database or an in-memory store like Redis.
+- **Static filter options.** Photographer and restriction options are hardcoded. They should be derived dynamically from the dataset via a `/api/facets` endpoint.
+- **Single-process analytics.** The file-based `AnalyticsStore` performs synchronous reads/writes on every request, which blocks the event loop. A production system would use buffered writes, async I/O, or an external store (Redis, PostgreSQL).
 - **No image thumbnails.** Results display a placeholder with the `bildnummer`. Integration with an image CDN would provide actual thumbnails.
-
+- **No loading skeleton.** Because search is executed in a Server Component, there is no visible loading indicator when filters change. Wrapping results in a `<Suspense>` boundary with a skeleton fallback would improve perceived performance.

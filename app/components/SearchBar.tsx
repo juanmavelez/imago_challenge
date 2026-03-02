@@ -54,7 +54,9 @@ export const SearchBar: React.FC = () => {
                     </svg>
                 </div>
                 <input
+                    id="search-input"
                     type="text"
+                    aria-label="Search media items"
                     className="w-full bg-gray-50 border border-gray-300 text-gray-900 text-lg rounded-lg focus:ring-blue-500 focus:border-blue-500 block pl-12 p-4 dark:bg-zinc-950 dark:border-zinc-700 dark:placeholder-gray-500 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 transition-all shadow-sm"
                     placeholder="Search high-quality editorial images... e.g., 'nature', 'Michael Jackson'"
                     value={inputValue}

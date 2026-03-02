@@ -76,7 +76,7 @@ export default function AnalyticsDashboard() {
                             disabled={loading}
                             className="flex-1 sm:flex-none rounded-md bg-neutral-800 px-3 py-2 text-xs sm:text-sm font-medium hover:bg-neutral-700 transition-colors disabled:opacity-50"
                         >
-                            {loading && stats ? "Refresing..." : "Refresh"}
+                            {loading && stats ? "Refreshing..." : "Refresh"}
                         </button>
                         <Link
                             href="/"

@@ -4,7 +4,6 @@ import { QUERY_PARAMS } from "@/app/constants/queryParams";
 import { SORT_OPTIONS } from "@/app/constants/sortOptions";
 
 export const FILTER_KEYS = [
-    QUERY_PARAMS.QUERY,
     QUERY_PARAMS.DATE_SORT,
     QUERY_PARAMS.CREDIT,
     QUERY_PARAMS.DATE_START,

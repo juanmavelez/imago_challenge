@@ -1,13 +1,12 @@
 {
-  "name": "my-app",
+  "name": "imago-search",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "generate-data": "npx tsx scripts/generate-data.ts",
-    "predev": "npm run generate-data",
-    "dev": "next dev",
+    "dev": "npm run generate-data && next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "npm run generate-data && next start",
     "lint": "eslint",
     "test": "vitest run"
   },
