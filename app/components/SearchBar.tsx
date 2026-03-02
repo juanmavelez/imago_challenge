@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useDebouncedCallback } from "use-debounce";
 import { useUrlParams } from "@/app/hooks/useUrlParams";
 import { QUERY_PARAMS } from "@/app/constants/queryParams";
@@ -11,11 +11,19 @@ export const SearchBar: React.FC = () => {
     const currentQuery = getParam(QUERY_PARAMS.QUERY);
     const [inputValue, setInputValue] = useState(currentQuery);
 
+
+    const isUserTypingRef = useRef(false);
+
     useEffect(() => {
+        if (isUserTypingRef.current) {
+            isUserTypingRef.current = false;
+            return;
+        }
         setInputValue(currentQuery);
     }, [currentQuery]);
 
     const handleSearch = useDebouncedCallback((term: string) => {
+        isUserTypingRef.current = true;
         updateParams({ [QUERY_PARAMS.QUERY]: term || null });
     }, 300);
 
