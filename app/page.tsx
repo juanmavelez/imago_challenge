@@ -51,6 +51,7 @@ const Home = async (props: PageProps) => {
           total={result.total}
           results={result.items}
           totalPages={result.totalPages}
+          query={query}
         />
 
       </main>

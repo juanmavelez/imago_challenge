@@ -254,7 +254,6 @@ For a production deployment, the ingestion would be decoupled from the API serve
 
 ## Limitations and Next Steps
 
-- **No text highlighting.** The search results show the full `suchtext` without highlighting matched terms. A production version would wrap matched tokens in `<mark>` tags.
 - **No partial or typo-tolerant search.** The search currently only finds exact word matches. Future improvements could include "starts-with" matching (so "Cat" matches "Category") or "fuzzy" matching to handle typos (so "Micael" still matches "Michael").
 - **No faceted counts.** The filter dropdowns do not show how many results each option yields. A facets API would provide counts for each filter value based on the current query.
 - **Static filter options.** Photographer and restriction options are hardcoded. They should be derived dynamically from the dataset.

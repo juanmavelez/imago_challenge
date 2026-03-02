@@ -1,11 +1,13 @@
 import React from "react";
 import { ProcessedMediaItem } from "@/lib/search-engine/DataProcessor";
+import { highlightText } from "./highlightText";
 
 interface ResultsGridProps {
     results: ProcessedMediaItem[];
+    query?: string;
 }
 
-export const ResultsGrid: React.FC<ResultsGridProps> = ({ results }) => {
+export const ResultsGrid: React.FC<ResultsGridProps> = ({ results, query }) => {
     if (results.length === 0) {
         return (
             <div className="bg-white dark:bg-zinc-900 border border-dashed border-gray-300 dark:border-zinc-700 rounded-lg p-12 text-center text-gray-500">
@@ -33,7 +35,7 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({ results }) => {
                                 <time className="text-xs text-gray-500 bg-gray-100 dark:bg-zinc-800 px-2 py-1 rounded-lg line-clamp-1">{new Date(item.datum).toLocaleDateString()}</time>
                             </header>
                             <p className="text-sm font-medium line-clamp-2 mt-1 leading-snug">
-                                {item.suchtext}
+                                {query ? highlightText(item.suchtext, query) : item.suchtext}
                             </p>
                             <footer className="mt-auto pt-4 flex flex-wrap gap-2">
                                 {item.restrictions?.map(r => (
