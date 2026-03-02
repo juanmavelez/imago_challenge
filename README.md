@@ -1,6 +1,6 @@
 # IMAGO Search
 
-A search experience for IMAGO's media content library, built with Next.js 16, TypeScript, and Tailwind CSS 4. The application provides keyword search with TF-IDF relevance scoring, metadata filtering, date sorting, pagination, and usage analytics over a dataset of 10,000 generated media items.
+A search experience for IMAGO's media content library, built with Next.js 16, TypeScript, and Tailwind CSS 4. The application provides keyword search with TF-IDF relevance scoring, fuzzy typo tolerance, metadata filtering, date sorting, pagination, and usage analytics over a dataset of 10,000 generated media items.
 
 **Live demo:** [imago.thevelezlab.com](https://imago.thevelezlab.com)
 
@@ -42,7 +42,7 @@ This automatically generates the synthetic dataset (`data/data.json`) then start
 The system is designed around three core principles:
 
 1. **Build-time preprocessing.** Raw media metadata is normalized, structured fields are extracted, and an inverted index is constructed at startup. This moves expensive work out of the request path.
-2. **In-memory search engine.** A custom inverted index with TF-IDF scoring provides sub-millisecond query resolution for 10,000 items without external dependencies. 
+2. **In-memory search engine.** A custom inverted index with TF-IDF scoring and Levenshtein-based fuzzy matching provides sub-millisecond query resolution for 10,000 items without external dependencies.
 3. **Server-side rendering with client-side interactivity.** The main search page is a Next.js Server Component that executes the search on the server and streams HTML. Filters and search input are Client Components that update URL parameters, triggering a server re-render. This avoids waterfalls and provides fast initial page loads.
 
 ---
@@ -56,7 +56,7 @@ The project follows a **Clean Architecture** principle: core business logic live
 **Why this matters:**
 
 - **Removability.** Either module can be extracted from the project and dropped into a completely different runtime (an Express server, a Deno service, a CLI tool) without changing a single import. If the search engine is ever replaced by Elasticsearch, the entire `lib/search-engine/` directory can be deleted and no `app/` file will break beyond the direct import site.
-- **Testability.** Because `lib/` modules have no framework coupling, their unit tests run in pure Node.js without mocking Next.js internals. This is why the 35-test suite covers `lib/` thoroughly and executes in milliseconds.
+- **Testability.** Because `lib/` modules have no framework coupling, their unit tests run in pure Node.js without mocking Next.js internals. This is why the 58-test suite covers `lib/` thoroughly and executes in milliseconds.
 - **Dependency direction.** The dependency arrow always points inward: `app/` depends on `lib/`, never the reverse. The `app/` layer (routes, components, hooks) is the delivery mechanism; `lib/` is the engine. This follows the [Dependency Rule](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html) — source code dependencies must point inward, toward higher-level policies.
 
 ```
@@ -141,7 +141,7 @@ Additionally:
 
 | Module | Location | Responsibility |
 |---|---|---|
-| `SearchEngine` | `lib/search-engine/SearchEngine.ts` | Inverted index construction, TF-IDF search, ranking |
+| `SearchEngine` | `lib/search-engine/SearchEngine.ts` | Inverted index construction, TF-IDF search, fuzzy matching, ranking |
 | `DataProcessor` | `lib/search-engine/DataProcessor.ts` | Raw-to-processed transformation, restriction extraction |
 | `tokenize` | `lib/search-engine/tokenize.ts` | Text normalization, Unicode-aware tokenization |
 | `normalizeDate` | `lib/search-engine/normalizeDate.ts` | German date format parsing to ISO/timestamp |
@@ -187,6 +187,26 @@ score = fieldWeight * IDF
 ```
 
 > **Note:** This implementation is a simplified, in-memory version of production-grade scoring algorithms. It follows the same fundamental information retrieval used by [Redis Search (RediSearch)](https://redis.io/docs/latest/develop/ai/search-and-query/advanced-concepts/scoring/)
+
+### Fuzzy Matching (Typo Tolerance)
+
+When a query token has no exact match in the inverted index, the engine falls back to **Levenshtein distance** matching. This allows users to find results even with common typos — for example, `"michel"` successfully matches `"michael"`.
+
+**How it works:**
+
+1. The engine first attempts an exact lookup for each query token.
+2. If no exact match is found, it scans all index keys and computes the [Levenshtein edit distance](https://en.wikipedia.org/wiki/Levenshtein_distance) (minimum insertions, deletions, or substitutions to transform one string into another).
+3. Matches within distance ≤ 2 are accepted, with a **score penalty** to ensure exact matches always rank higher:
+
+| Edit Distance | Score Penalty | Example |
+|---|---|---|
+| 0 (exact) | 100% | `"michael"` → `"michael"` |
+| 1 | 80% | `"michel"` → `"michael"` |
+| 2 | 50% | `"mihcel"` → `"michael"` |
+
+4. A quick length-difference check (`|len(a) - len(b)| > maxDistance`) skips obviously distant keys without computing full Levenshtein.
+
+**Performance:** With ~71 unique vocabulary terms in the current dataset, the fuzzy scan is essentially free — just 71 string comparisons per query token when there is no exact match. Exact matches still take the O(1) fast path via the inverted index.
 
 ### Ranking
 
@@ -296,7 +316,8 @@ Testing is focused on the **backend search pipeline**, where correctness is crit
 
 | Module | File | Tests | What is tested |
 |---|---|---|---|
-| `SearchEngine` | `SearchEngine.test.ts` | 6 | Index construction, empty/no-match queries, single-token search, multi-token ranking, accumulated weight scoring |
+| `SearchEngine` | `SearchEngine.test.ts` | 22 | Edge cases (empty query, whitespace, no match, empty index, deduplicated tokens), field weight ranking (suchtext > fotografen > bildnummer, multi-field accumulation), IDF scoring (rare vs common terms), multi-token ranking (2/2 > 1/2, 3/3 > 2/3 > 1/3, TF-IDF tiebreaker), case insensitivity, incremental indexing, determinism |
+| `levenshteinDistance` | `levenshteinDistance.test.ts` | 7 | Identical strings, empty strings, insertion (michel→michael), substitution (cat→bat), deletion (cats→cat), symmetry, distance > 2 |
 | `DataProcessor` | `DataProcessor.test.ts` | 6 | Raw-to-processed transformation, restriction extraction (regex + bracket), date parsing/fallback, missing/malformed fields |
 | `tokenize` | `tokenize.test.ts` | 6 | Falsy input, case folding, punctuation stripping, numeric tokens, whitespace normalization, German umlauts |
 | `normalizeDate` | `normalizeDate.test.ts` | 5 | DD.MM.YYYY parsing, ISO fallback, empty string, completely invalid input, malformed dot notation |
@@ -304,7 +325,7 @@ Testing is focused on the **backend search pipeline**, where correctness is crit
 | `applySorting` | `applySorting.test.ts` | 3 | Latest (descending), oldest (ascending), null/invalid sort passthrough |
 | `applyPagination` | `applyPagination.test.ts` | 4 | First page, middle page, partial last page, out-of-bounds |
 
-**Total: 35 tests across 7 files.**
+**Total: 58 tests across 8 files.**
 
 ### Running tests
 
@@ -340,6 +361,7 @@ npm test
 | File-based analytics | Persists across server restarts, no database needed | Not suitable for concurrent writes at scale |
 | Offset pagination | Simple implementation, familiar UX pattern | Performance degrades on deep pages with very large datasets |
 | No stop-word removal | Preserves all searchable terms in terse metadata | Slightly noisier results for common words |
+| Levenshtein fuzzy matching | Handles typos gracefully (e.g., "michel" → "michael") | Scans all index keys on miss; acceptable for small vocabularies but would need a BK-tree or similar for large ones |
 | Synthetic data | Demonstrates search at scale without real data | Does not capture real-world metadata inconsistencies |
 | Field-weighted TF (Set-based) | Simple, predictable scoring; prevents long descriptions from dominating | Ignores intra-field term frequency (e.g., "apple apple" scores same as "apple") |
 
@@ -347,7 +369,7 @@ npm test
 
 ## Limitations and Next Steps
 
-- **No partial or typo-tolerant search.** The search currently only finds exact word matches. Future improvements could include "starts-with" matching (so "Cat" matches "Category") or "fuzzy" matching to handle typos (so "Micael" still matches "Michael").
+- **No partial/prefix matching.** The search does not support "starts-with" matching (e.g., "Cat" will not match "Category"). A prefix trie or n-gram index could be added for this.
 - **No faceted counts.** The filter dropdowns do not show how many results each option yields. A facets API would provide counts for each filter value based on the current query.
 - **Static filter options.** Photographer and restriction options are hardcoded. They should be derived dynamically from the dataset via a `/api/facets` endpoint.
 - **Single-process analytics.** The file-based `AnalyticsStore` performs synchronous reads/writes on every request, which blocks the event loop. A production system would use buffered writes, async I/O, or an external store (Redis, PostgreSQL).

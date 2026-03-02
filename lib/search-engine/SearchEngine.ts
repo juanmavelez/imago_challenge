@@ -1,5 +1,11 @@
-import { tokenize } from "./tokenize"
+import { tokenize } from "./tokenize";
+import { levenshteinDistance, MAX_FUZZY_DISTANCE } from "./levenshteinDistance";
 
+const FUZZY_PENALTIES: Record<number, number> = {
+    0: 1.0,  // Exact match — full score
+    1: 0.8,  // 1 edit away (e.g. "michel" → "michael")
+    2: 0.5,  // 2 edits away
+};
 export interface MediaItem {
     id: string; // Assuming an id exists, otherwise 'bildnummer' can be used as the unique identifier
     suchtext: string;
@@ -57,6 +63,49 @@ export class SearchEngine {
         }
     }
 
+    /**
+     * Finds index entries that fuzzy-match the given token.
+     * Returns a list of { indexToken, entries, penalty } sorted by distance (best first).
+     * Falls back to fuzzy only when no exact match exists.
+     */
+    private findMatchingEntries(token: string): Array<{
+        indexToken: string;
+        entries: Map<string, number>;
+        penalty: number;
+    }> {
+        // 1. Try exact match first
+        const exact = this.invertedIndexMap.get(token);
+        if (exact) {
+            return [{ indexToken: token, entries: exact, penalty: 1.0 }];
+        }
+
+        // 2. Fuzzy fallback — scan all index keys (cheap for small vocabularies)
+        const fuzzyMatches: Array<{
+            indexToken: string;
+            entries: Map<string, number>;
+            penalty: number;
+            distance: number;
+        }> = [];
+
+        for (const [key, entries] of this.invertedIndexMap) {
+            // Quick length check to skip obviously distant keys
+            if (Math.abs(key.length - token.length) > MAX_FUZZY_DISTANCE) continue;
+
+            const dist = levenshteinDistance(token, key);
+            if (dist > 0 && dist <= MAX_FUZZY_DISTANCE) {
+                fuzzyMatches.push({
+                    indexToken: key,
+                    entries,
+                    penalty: FUZZY_PENALTIES[dist] ?? 0,
+                    distance: dist,
+                });
+            }
+        }
+
+        // Return closest matches first
+        return fuzzyMatches.sort((a, b) => a.distance - b.distance);
+    }
+
     public search(query: string): string[] {
         const queryTokens = tokenize(query);
         if (queryTokens.length === 0) return [];
@@ -69,16 +118,19 @@ export class SearchEngine {
         const tokenCounts = new Map<string, number>();
 
         for (const token of uniqueQueryTokens) {
-            const matchingItems = this.invertedIndexMap.get(token);
+            const matchGroups = this.findMatchingEntries(token);
 
-            if (matchingItems) {
-                const documentFrequency = matchingItems.size;
+            for (const { entries, penalty } of matchGroups) {
+                const documentFrequency = entries.size;
                 const idf = Math.log(this.documentCount / (documentFrequency || 1)) + 1;
 
-                for (const [id, tfScore] of matchingItems.entries()) {
-                    const tfIdfScore = tfScore * idf;
+                for (const [id, tfScore] of entries.entries()) {
+                    const tfIdfScore = tfScore * idf * penalty;
                     scores.set(id, (scores.get(id) || 0) + tfIdfScore);
-                    tokenCounts.set(id, (tokenCounts.get(id) || 0) + 1);
+                    // Only count once per query token (not per fuzzy variant)
+                    if (!tokenCounts.has(id) || (tokenCounts.get(id)! < uniqueQueryTokens.indexOf(token) + 1)) {
+                        tokenCounts.set(id, (tokenCounts.get(id) || 0) + 1);
+                    }
                 }
             }
         }
